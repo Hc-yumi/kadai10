@@ -175,7 +175,7 @@ func getUserByUsername(c *gin.Context, name string) (bool, string) {
 }
 
 // *************画像関係*************//
-// fileの表示(帰ってくるところ)//
+// fileの表示(かえってくるところ)//
 func IndexHandlerr(w http.ResponseWriter, r *http.Request) {
 	dir, err := os.Open("images/")
 	defer dir.Close()
@@ -183,12 +183,12 @@ func IndexHandlerr(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	allImageNames, err := dir.Readdirnames(-1) // それぞれの画像ファイルの名前を配列に格納します
+	allImageNames, err := dir.Readdirnames(-1) // それぞれの画像ファイルの名前を配列に格納
 	if err != nil {
 		log.Fatalln("No files")
 	}
 	var decodeAllImages []image.Image
-	for _, imageName := range allImageNames { // 全ての画像をデコード、リサイズしてdecodeAllImageseに格納します
+	for _, imageName := range allImageNames { // 全ての画像をデコード、リサイズしてdecodeAllImageseに格納
 		file, _ := os.Open("images/" + imageName)
 		defer file.Close()
 		if err != nil {
@@ -196,7 +196,7 @@ func IndexHandlerr(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		decodeImage, _, err := image.Decode(file)
-		resizedDecodeImage := resize.Resize(300, 0, decodeImage, resize.Lanczos3) // サイズを揃えるために横幅を300に固定します
+		resizedDecodeImage := resize.Resize(300, 0, decodeImage, resize.Lanczos3) // サイズを揃えるために横幅を300に固定
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -206,7 +206,7 @@ func IndexHandlerr(w http.ResponseWriter, r *http.Request) {
 	writeImageWithTemplate(w, decodeAllImages)
 }
 
-	// **画像**writeImageWithTemplateで画像をエンコード**//
+	// writeImageWithTemplateで画像をエンコード**//
 	func writeImageWithTemplate(w http.ResponseWriter, decodeAllImages []image.Image) {
 		var encordImages []string
 		for _, decodeImage := range decodeAllImages {
