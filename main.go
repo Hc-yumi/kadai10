@@ -18,12 +18,16 @@ import (
 	"image"
 	"image/jpeg"
 	"text/template"
-	"github.com/nfnt/resize"
-	//** 画像で使用↑**//
 
-	_"image/png"
-  "encoding/gob"
+	"github.com/nfnt/resize"
+
+	//** 画像で使用↑**//
+	"github.com/google/uuid"
+
 	_ "database/sql"
+	"encoding/gob"
+	_ "image/png"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/sessions"
 	"golang.org/x/crypto/bcrypt"
@@ -34,9 +38,9 @@ import (
 
 	_ "encoding/base64"
 	"io"
-	_"io/ioutil"
+	_ "io/ioutil"
 	"os"
-	_"path/filepath"
+	_ "path/filepath"
 	_ "strings"
 )
 
@@ -58,7 +62,6 @@ type BookmarkJson struct {
 	URL     string `json:"URL"`
 	Comment string `json:"Comment"`
 }
-
 
 type Record struct {
 	ID       int
@@ -179,7 +182,7 @@ func getUserByUsername(c *gin.Context, name string) (bool, string) {
 
 // *************画像関係*************//
 // fileの表示(かえってくるところ)//
-func IndexHandlerr(w http.ResponseWriter, r *http.Request) {
+func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	dir, err := os.Open("images/")
 	defer dir.Close()
 	if err != nil {
@@ -209,31 +212,31 @@ func IndexHandlerr(w http.ResponseWriter, r *http.Request) {
 	writeImageWithTemplate(w, decodeAllImages)
 }
 
-	// writeImageWithTemplateで画像をエンコード**//
-	func writeImageWithTemplate(w http.ResponseWriter, decodeAllImages []image.Image) {
-		var encordImages []string
-		for _, decodeImage := range decodeAllImages {
-			buffer := new(bytes.Buffer)
-			if err := jpeg.Encode(buffer, decodeImage, nil); err != nil {
-				log.Fatalln("Unable to encode image.")
-			}
-			str := base64.StdEncoding.EncodeToString(buffer.Bytes())
-			encordImages = append(encordImages, str)
+// writeImageWithTemplateで画像をエンコード**//
+func writeImageWithTemplate(w http.ResponseWriter, decodeAllImages []image.Image) {
+	var encordImages []string
+	for _, decodeImage := range decodeAllImages {
+		buffer := new(bytes.Buffer)
+		if err := jpeg.Encode(buffer, decodeImage, nil); err != nil {
+			log.Fatalln("Unable to encode image.")
 		}
-		data := map[string]interface{}{"Images": encordImages}
-		renderTemplate(w, data)
+		str := base64.StdEncoding.EncodeToString(buffer.Bytes())
+		encordImages = append(encordImages, str)
 	}
-	
-	// renderTemplateで渡された画像をテンプレートエンジンに渡す。
-	func renderTemplate(w http.ResponseWriter, data interface{}) {
-		var templates = template.Must(template.ParseFiles("temp/show.html"))
-		if err := templates.ExecuteTemplate(w, "show.html", data); err != nil {
-			log.Fatalln("Unable to execute template.")
-		}
+	data := map[string]interface{}{"Images": encordImages}
+	renderTemplate(w, data)
+}
 
-		// location := url.URL{Path: "/showpage"}
-		// c.Redirect(http.StatusFound, location.RequestURI())
+// renderTemplateで渡された画像をテンプレートエンジンに渡す。
+func renderTemplate(w http.ResponseWriter, data interface{}) {
+	var templates = template.Must(template.ParseFiles("temp/show.html"))
+	if err := templates.ExecuteTemplate(w, "show.html", data); err != nil {
+		log.Fatalln("Unable to execute template.")
 	}
+
+	// location := url.URL{Path: "/showpage"}
+	// c.Redirect(http.StatusFound, location.RequestURI())
+}
 
 func main() {
 	// まずはデータベースに接続する。(パスワードは各々異なる)
@@ -249,7 +252,7 @@ func main() {
 	 * rはrouterの略で何のAPIを用意するかを定義する。
 	 * postpage　GET、/showpage　GET、/user　POST
 	 */
-  
+
 	// カラーテーブル？
 	gin.DefaultWriter = colorable.NewColorableStdout()
 	r := gin.Default()
@@ -284,48 +287,46 @@ func main() {
 		c.HTML(http.StatusOK, "post.html", gin.H{})
 	})
 
-
 	//******** 画像アップロード********//
-  r.POST("/upload", func(c *gin.Context) {
-    // 画像の保存
-	  image, _, _ := c.Request.FormFile("image")
-    saveFile, _ := os.Create("./images/sample.jpeg")
-		// saveFile, _ := os.Create("./images/" + header.Filename)
-    defer saveFile.Close()
-    io.Copy(saveFile, image)
+	// r.POST("/upload", func(c *gin.Context) {
+	//   // 画像の保存
+	//   image, _, _ := c.Request.FormFile("image")
+	//   // saveFile, _ := os.Create("./images/sample.jpeg")
+	// 	saveFile, _ := os.Create("./images/" + header.Filename)
+	//   defer saveFile.Close()
+	//   io.Copy(saveFile, image)
 
-		location := url.URL{Path: "/showpage"}
-		c.Redirect(http.StatusFound, location.RequestURI())
-	})
+	// 	location := url.URL{Path: "/showpage"}
+	// 	c.Redirect(http.StatusFound, location.RequestURI())
+	// })
 	//******** 画像アップロードおわり********//
 
-
 	// 結果を表示するページを返す。
-	r.GET("/showpage", func (c *gin.Context ) {
-		
-			session, _ := store.Get(c.Request, "session")
-			// var usertruct = &User{}
-			val := session.Values["user"]
-			var ok bool
-			if _, ok = val.(*User); !ok {
-				fmt.Println("was not of type *User")
-				c.HTML(http.StatusForbidden, "login.html", nil)
-				return
-			}		
+	r.GET("/showpage", func(c *gin.Context) {
+
+		session, _ := store.Get(c.Request, "session")
+		// var usertruct = &User{}
+		val := session.Values["user"]
+		var ok bool
+		if _, ok = val.(*User); !ok {
+			fmt.Println("was not of type *User")
+			c.HTML(http.StatusForbidden, "login.html", nil)
+			return
+		}
 
 		var records []Record
 		// &recordsをDBに渡して、取得したデータを割り付ける。
-		dbc := conn.Raw("SELECT id, bookname,url,comment,to_char(time,'YYYY-MM-DD HH24:MI:SS') AS time ,image_url FROM booklist ORDER BY id").Scan(&records)
+		dbc := conn.Raw("SELECT id, image_url, bookname,url,comment,to_char(time,'YYYY-MM-DD HH24:MI:SS') AS time FROM booklist ORDER BY id").Scan(&records)
 		if dbc.Error != nil {
 			fmt.Print(dbc.Error)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 			return
 		}
 
-		for idx := range records {
-			// records[idx].ImageURL = "/images/sample.jpeg"
-			records[idx].ImageURL = ""
-		}
+		// for idx := range records {
+		// 	// records[idx].ImageURL = "/images/sample.jpeg"
+		// 	records[idx].ImageURL = ""
+		// }
 
 		c.HTML(http.StatusOK, "show.html", gin.H{
 			"Books": records,
@@ -342,12 +343,19 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid argument"})
 			return
 		}
+
 		var record Record
+		image, _, _ := c.Request.FormFile("image")
+		filePath := "./images/" + uuid.New().String() + ".jpeg"
+		saveFile, _ := os.Create(filePath)
+		defer saveFile.Close()
+		io.Copy(saveFile, image)
+
 		// 以下の様にしてInsert文を書いて、リクエストデータをDBに書きこむ。.Scan(&record)はDBに書き込む際に必要らしい。
 		// recordはbooklistテーブルと構造を同じにしている。(Gormのお作法)
 		dbc := conn.Raw(
-			"insert into booklist(bookname, url, comment) values(?, ?, ?)",
-			book.Name, book.URL, book.Comment).Scan(&record)
+			"insert into booklist(Image_url,bookname, url, comment) values(?, ?, ?, ?)",
+			filePath, book.Name, book.URL, book.Comment).Scan(&record)
 		if dbc.Error != nil {
 			fmt.Print(dbc.Error)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
@@ -432,7 +440,7 @@ func main() {
 		fmt.Println("id is ", id)
 		// c.HTML(http.StatusOK, "select.html", gin.H{"id": id})
 		var records []Record
-		dbc := conn.Raw("SELECT id, bookname,url,comment,to_char(time,'YYYY-MM-DD HH24:MI:SS') AS time FROM booklist where id=?", id).Scan(&records)
+		dbc := conn.Raw("SELECT id,bookname,url,comment,to_char(time,'YYYY-MM-DD HH24:MI:SS') AS time FROM booklist where id=?", id).Scan(&records)
 
 		if dbc.Error != nil {
 			fmt.Print(dbc.Error)
