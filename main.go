@@ -12,16 +12,18 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
+	// **画像で使用↓**//
 	"bytes"
-	_ "database/sql"
 	"encoding/base64"
-	"encoding/gob"
 	"image"
-	_"image/png"
 	"image/jpeg"
 	"text/template"
 	"github.com/nfnt/resize"
+	//** 画像で使用↑**//
 
+	_"image/png"
+  "encoding/gob"
+	_ "database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/sessions"
 	"golang.org/x/crypto/bcrypt"
@@ -64,6 +66,7 @@ type Record struct {
 	URL      string
 	Comment  string
 	Time     string
+	ImageURL string
 }
 
 // loginで使用
@@ -298,7 +301,6 @@ func main() {
 
 
 	// 結果を表示するページを返す。
-	// r.GET("/showpage", func(c *gin.Context) {
 	r.GET("/showpage", func (c *gin.Context ) {
 		
 			session, _ := store.Get(c.Request, "session")
@@ -313,15 +315,23 @@ func main() {
 
 		var records []Record
 		// &recordsをDBに渡して、取得したデータを割り付ける。
-		dbc := conn.Raw("SELECT id, bookname,url,comment,to_char(time,'YYYY-MM-DD HH24:MI:SS') AS time FROM booklist ORDER BY id").Scan(&records)
+		dbc := conn.Raw("SELECT id, bookname,url,comment,to_char(time,'YYYY-MM-DD HH24:MI:SS') AS time ,image_url FROM booklist ORDER BY id").Scan(&records)
 		if dbc.Error != nil {
 			fmt.Print(dbc.Error)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
 			return
 		}
+
+		for idx := range records {
+			// records[idx].ImageURL = "/images/sample.jpeg"
+			records[idx].ImageURL = ""
+		}
+
+		c.HTML(http.StatusOK, "show.html", gin.H{
+			"Books": records,
+		})
+
 	})
-
-
 
 	// データを登録するAPI。POST用のページ（post.html）の内部で送信ボタンを押すと呼ばれるAPI。
 	r.POST("/book", func(c *gin.Context) {
@@ -437,8 +447,11 @@ func main() {
 
 	// サーバーを立ち上げた瞬間は一旦ここまで実行されてListening状態となる。
 	// r.POST( や　r.GET(　等の関数はAPIが呼ばれる度に実行される。
-	http.HandleFunc("/", IndexHandlerr)
-	http.ListenAndServe(":8080", nil)
+	// http.HandleFunc("/", IndexHandlerr)
+	// http.ListenAndServe(":8080", nil)
+	r.Static("/images", "./images")
+	fmt.Println("server is up")
+
 	r.Run()
 
 }
