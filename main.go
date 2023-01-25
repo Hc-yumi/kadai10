@@ -440,7 +440,7 @@ func main() {
 		fmt.Println("id is ", id)
 		// c.HTML(http.StatusOK, "select.html", gin.H{"id": id})
 		var records []Record
-		dbc := conn.Raw("SELECT id,bookname,url,comment,to_char(time,'YYYY-MM-DD HH24:MI:SS') AS time FROM booklist where id=?", id).Scan(&records)
+		dbc := conn.Raw("SELECT id,image_url,bookname,url,comment,to_char(time,'YYYY-MM-DD HH24:MI:SS') AS time FROM booklist where id=?", id).Scan(&records)
 
 		if dbc.Error != nil {
 			fmt.Print(dbc.Error)

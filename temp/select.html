@@ -15,6 +15,7 @@
   <table border='2'>
     <tr>
       <th>ID</th>
+      <th>画像(image_url)</th>
       <th>書籍名(bookname)</th>
       <th>書籍URL(bookUrl)</th>
       <th>書籍のコメント(comment)</th>
@@ -27,6 +28,7 @@
 
     <tr>
         <td><p>{{.Selects.ID }}</p></td>
+        <td><input type="file" id="image_url"><img src="{{ .Selects.ImageURL }}"></td>
         <td><input type="text" id="bookname" value="{{ .Selects.Bookname }}"></td>
         <td><input type="text" id="URL" value="{{ .Selects.URL }}"></td>
         <td><input type="text" id="comment" value=" {{ .Selects.Comment }}"></td>
@@ -43,6 +45,7 @@
     function runUpdate(id){
       console.log("OK");
       let data = {
+        "image_url":document.getElementById('image_url').value,
         "bookname":document.getElementById('bookname').value,
         "URL":document.getElementById('URL').value,
         "Comment":document.getElementById('comment').value,
