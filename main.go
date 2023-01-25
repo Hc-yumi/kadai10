@@ -376,10 +376,17 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid argument"})
 			return
 		}
+
 		var record Record
+		image, _, _ := c.Request.FormFile("image")
+		filePath := "./images/" + uuid.New().String() + ".jpeg"
+		saveFile, _ := os.Create(filePath)
+		defer saveFile.Close()
+		io.Copy(saveFile, image)
+
 		dbc := conn.Raw(
-			"UPDATE booklist SET bookname=?, url=?, comment=? where id=?",
-			book.Name, book.URL, book.Comment, id).Scan(&record)
+			"UPDATE booklist SET image_url=?, bookname=?, url=?, comment=? where id=?",
+			filePath, book.Name, book.URL, book.Comment, id).Scan(&record)
 		if dbc.Error != nil {
 			fmt.Print(dbc.Error)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})

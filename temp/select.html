@@ -11,7 +11,7 @@
   <!-- <p>selected id is {{.id}}</p> -->
 
 
-
+  <form enctype="multipart/form-data" method="put">
   <table border='2'>
     <tr>
       <th>ID</th>
@@ -28,7 +28,7 @@
 
     <tr>
         <td><p>{{.Selects.ID }}</p></td>
-        <td><input type="file" id="image_url"><img src="{{ .Selects.ImageURL }}"></td>
+        <td><input type="file" id="image_url" name="image"><img src={{ .Selects.ImageURL }}></td>
         <td><input type="text" id="bookname" value="{{ .Selects.Bookname }}"></td>
         <td><input type="text" id="URL" value="{{ .Selects.URL }}"></td>
         <td><input type="text" id="comment" value=" {{ .Selects.Comment }}"></td>
@@ -38,10 +38,11 @@
 
 
   <button onclick="runUpdate(this.id)" id="{{.Selects.ID }}">更新</button>
+  </form>
 
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script> 
-  <script type="text/javascript">
+  <script type="text/javascript" >
     function runUpdate(id){
       console.log("OK");
       let data = {
